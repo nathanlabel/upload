@@ -1,0 +1,10 @@
+[
+    {
+        "local_path": "path/to/local/file1",
+        "remote_path": "path/to/remote/file1"
+    },
+    {
+        "local_path": "path/to/local/file2",
+        "remote_path": "path/to/remote/file2"
+    }
+]

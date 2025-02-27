@@ -1,0 +1,4 @@
+argparse
+scp
+dotenv
+paramiko
