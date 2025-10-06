@@ -84,17 +84,22 @@ class SSHConfig:
 
     def _create_ssh_client(self):
         """Creates and returns a new SSH client connected to the server."""
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(self._hostname, self._port, self._username, self._password)
-        return client
+        return create_ssh_client(self._hostname, self._port, self._username, self._password)
 
     def close(self):
         """Closes the SSH session if it is active."""
         if self._ssh_client:
             self._ssh_client.close()
             logger.info("SSH session closed")
+
+# Public helper to create SSH client
+def create_ssh_client(hostname, port, username, password):
+    """Create, configure, and connect a paramiko SSHClient."""
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(hostname, port, username, password)
+    return client
 
 # Function to check sudo privileges
 def check_sudo_privileges(ssh_client):
@@ -127,13 +132,13 @@ def create_remote_directory(ssh_client, remote_dir, password):
         password (str): Sudo password.
     """
     logger.info("Creating remote directory: %s", remote_dir)
-    command_check = f'sudo -S ls {remote_dir}'
+    command_check = f'echo {password} | sudo -S test -d {remote_dir}'
     stdin, stdout, stderr = ssh_client.exec_command(command_check)
     exit_status = stdout.channel.recv_exit_status()
     stdout_str = stdout.read().decode()
     stderr_str = stderr.read().decode()
 
-    logger.info("Check directory command: %s", command_check)
+    logger.info("Check directory command: sudo test -d %s", remote_dir)
     logger.info("Check directory stdout: %s", stdout_str)
     logger.info("Check directory stderr: %s", stderr_str)
     logger.info("Check directory exit status: %s", exit_status)
@@ -150,7 +155,7 @@ def create_remote_directory(ssh_client, remote_dir, password):
     stdout_str = stdout.read().decode()
     stderr_str = stderr.read().decode()
 
-    logger.info("Create directory command: %s", command)
+    logger.info("Create directory command: sudo mkdir -p %s", remote_dir)
     logger.info("Create directory stdout: %s", stdout_str)
     logger.info("Create directory stderr: %s", stderr_str)
     logger.info("Create directory exit status: %s", exit_status)
